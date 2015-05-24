@@ -28,7 +28,7 @@ public class SudokuSolver {
 		int readUntil = 0;
 		
 		
-		while ((line = getNextLine()) != null && (readUntil < 10000)) {
+		while ((line = getNextLine()) != null && (readUntil < 1000)) {
 			initLp();
 			loadMatrixFromString(line);
 			lp.setObjFn(objFunc);
@@ -40,7 +40,7 @@ public class SudokuSolver {
 			//lp.
 			readUntil++;
 			System.out.println(readUntil);
-			//lp.deleteLp();
+			lp.deleteLp();
 		}
 		lp.deleteLp();
 		final long end = System.nanoTime();
@@ -112,7 +112,7 @@ public class SudokuSolver {
 	}
 	
 	private static void addCoef(int i, int j, int value) {
-		int negativeBound = -1000000;
+		int negativeBound = -100;
 		for (int row = 0; row < ROW_SIZE; row++) {
 			
 			if (row == i) {
@@ -147,6 +147,15 @@ public class SudokuSolver {
 			} else {
 				objFunc[getIndex(boxX + 1, boxY + 1, value)] = negativeBound;
 			}
+		}
+		
+		for(int k = 1; k <= ROW_SIZE; k++) {
+			if(k == value) {
+				objFunc[getIndex(i + 1, j + 1, k)] = -negativeBound;
+			} else {
+				objFunc[getIndex(i + 1, j + 1, k)] = negativeBound;
+			}
+			
 		}
 	}
 	
