@@ -1,10 +1,19 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import lpsolve.*;
 
 public class SudokuSolver {
+	
+	static final int INVALID = 0;
+	static final int SINGLE_PROBLEM = 1;
+	static final int ALL = 2;
+	static final int EXIT = 3;
+	
+	static final String ALL_STRING = "ALL";
+	static final String EXIT_STRING = "Q";
 	
 	static LpSolve lp;
 	static BufferedReader br = null;
@@ -17,46 +26,123 @@ public class SudokuSolver {
 	static double[] objFunc = new double[VAR_NUMBER + 1];
 	static int[] colno = new int[COLUMN_SIZE];
 	static double[] sparseRow = new double[ROW_SIZE];
+	static double[] resultMatrix = new double[VAR_NUMBER];
 	
   public static void main(String[] args) {
 	  
 	try {
-		final long start = System.nanoTime();
-		setFilePath("C:\\temp\\5.txt");
 		
-		String line = null;
-		int readUntil = 0;
-		
-		
-		while ((line = getNextLine()) != null && (readUntil < 1000)) {
-			initLp();
-			loadMatrixFromString(line);
-			lp.setObjFn(objFunc);
-			lp.setMaxim();
-			//lp.writeLp("model"+(readUntil + 1) +".lp");
-			if(lp.solve() != LpSolve.OPTIMAL) {
-				System.err.println("NOT OPTIMAL FOR line " + readUntil);
+		boolean shouldExit = false;
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+	  
+		System.out.println("Welcome to the Sudoku Solver powered by a Generic algorithm");
+		while(!shouldExit) {
+			System.out.println("Please enter 81 digits that represent the Sudoku puzzle, or ALL to run over all 10,000 problems, or Q to quit:");
+			String line = reader.readLine();
+			switch(validateInput(line)) {
+				case INVALID:
+					System.out.println("Invalid input");
+					break;
+				  case SINGLE_PROBLEM:
+					  initLp();
+					  loadMatrixFromString(line);
+					  lp.setObjFn(objFunc);
+					  lp.setMaxim();
+					  if(lp.solve() != LpSolve.OPTIMAL) {
+						  System.err.println("No solution for the given line. Please enter a new valid sudoku puzzle");
+					  } else {
+						  printOutput();
+					  }				  
+					  //lp.writeLp("modelSpecific"+x+".lp");
+					  lp.deleteLp();
+					  break;
+				  case ALL:
+					  setFilePath("C:\\temp\\5.txt");
+					  final long start = System.nanoTime();
+					  int lineNumber = 0;
+					  while ((line = getNextLine()) != null && lineNumber < 100) {
+						  initLp();
+						  loadMatrixFromString(line);
+						  lp.setObjFn(objFunc);
+						  lp.setMaxim();
+						  if(lp.solve() != LpSolve.OPTIMAL) {
+							  System.err.println("NOT OPTIMAL for line " + lineNumber);
+						  }
+						  lineNumber++;
+						  System.out.println("Finished line " + lineNumber);
+						  //lp.writeLp("modelSpecific"+x+".lp");
+						  lp.deleteLp();
+					  }
+					  final long end = System.nanoTime();
+					  System.out.println("finished in " + formatTime(end - start));
+					  closeFile();
+					  break;
+				  case EXIT:
+					  shouldExit = true;
+					  break;
 			}
-			//lp.
-			readUntil++;
-			System.out.println(readUntil);
-			lp.deleteLp();
 		}
-		lp.deleteLp();
-		final long end = System.nanoTime();
-		System.out.println(formatTime(end - start));
-		System.out.println("DONE");
-		//lp.deleteLp();
-		closeFile();
-		
 	} catch (LpSolveException e) {
-		e.printStackTrace();
+		  e.printStackTrace();
 	}
+	catch (IOException e) {
+		  e.printStackTrace();
+	}
+
+	System.out.println("Thanks for using our Specific Sudoku solver model!");
+		
   }
   
-	public static int getIndex(int row, int column, int value) {
-		return 81 * (row - 1) + 9 * (column - 1) + value;
-	}
+  private static int validateInput(String line) {
+	  if(line == null) {
+		  return INVALID;
+	  }
+		
+	  if(line.length() == 1) {
+		  if(line.toUpperCase().contains(EXIT_STRING)) {
+			  return EXIT;
+		  } else {
+			  return INVALID;
+		  }
+	  }
+		
+	  if(line.length() == 3) {
+		  if(line.toUpperCase().contains(ALL_STRING)) {
+			  return ALL;
+		  } else {
+			  return INVALID;
+		  }
+	  }
+		
+	  if (line.length() != 81) {
+		  return INVALID;
+	  }
+	  char[] arr = line.toCharArray();
+	  for(int i = 0; i < arr.length; i++) {
+		  if(arr[i] < '0' || arr[i] > '9') {
+			  return INVALID;
+		  }
+	  }
+		
+	  return SINGLE_PROBLEM;
+  }
+  
+  private static void printOutput() throws LpSolveException {
+		
+	  lp.getVariables(resultMatrix);
+		
+	  for (int i = 0 ; i< resultMatrix.length; i++) {
+		  if(resultMatrix[i] != 0) {
+			  System.out.print((i % 9) + 1);
+		  }
+	  }
+	  System.out.println();
+	  System.out.println();
+  }
+  
+  public static int getIndex(int row, int column, int value) {
+	  return 81 * (row - 1) + 9 * (column - 1) + value;
+  }
 	
 	static void loadMatrixFromString(String matrixStr) throws LpSolveException {
 		lp.setAddRowmode(true);
