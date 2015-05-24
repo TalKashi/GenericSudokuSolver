@@ -12,6 +12,7 @@ public class SudokuSolver {
 	static final int CELLS_NUM = 81;
 	static final int ROW_SIZE = (int) Math.sqrt(CELLS_NUM);
 	static final int COLUMN_SIZE = ROW_SIZE;
+	static final int BOX_SIZE = ROW_SIZE;
 	static final int MAX_VALUE = ROW_SIZE;
 	static double[] objFunc = new double[VAR_NUMBER + 1];
 	static int[] colno = new int[COLUMN_SIZE];
@@ -32,8 +33,10 @@ public class SudokuSolver {
 			loadMatrixFromString(line);
 			lp.setObjFn(objFunc);
 			lp.setMaxim();
-			lp.writeLp("model"+(readUntil + 1) +".lp");
-			lp.solve();
+			//lp.writeLp("model"+(readUntil + 1) +".lp");
+			if(lp.solve() != LpSolve.OPTIMAL) {
+				System.err.println("NOT OPTIMAL FOR line " + readUntil);
+			}
 			//lp.
 			readUntil++;
 			System.out.println(readUntil);
@@ -109,26 +112,40 @@ public class SudokuSolver {
 	}
 	
 	private static void addCoef(int i, int j, int value) {
+		int negativeBound = -1000000;
 		for (int row = 0; row < ROW_SIZE; row++) {
-			int bound = -1000000;
+			
 			if (row == i) {
-				bound = 1000000;
+				//bound = 1000000;
 				//System.out.println(createString(i + 1, j + 1, value));
 				//System.out.println(getIndex(row + 1, j + 1, value));
-				objFunc[getIndex(row + 1, j + 1, value)] = bound;
+				objFunc[getIndex(row + 1, j + 1, value)] = -negativeBound;
 			} else {
-				objFunc[getIndex(row + 1, j + 1, value)] = bound;
+				objFunc[getIndex(row + 1, j + 1, value)] = negativeBound;
 			}
 		}
 		
 		for (int column = 0; column < COLUMN_SIZE; column++) {
 			//System.out.println(createString(i + 1, j + 1, value));
-			int bound = -1000000;
+			//int bound = -1000000;
 			if (column == j) {
-				bound = 1000000;
-				objFunc[getIndex(i + 1, column + 1, value)] = bound;
+				//bound = 1000000;
+				objFunc[getIndex(i + 1, column + 1, value)] = -negativeBound;
 			} else {
-				objFunc[getIndex(i + 1, column + 1, value)] = bound;
+				objFunc[getIndex(i + 1, column + 1, value)] = negativeBound;
+			}
+		}
+		
+		int boxXTopCorner = (i / 3) * 3;
+		int boxYTopCorner = (j / 3) * 3;
+		
+		for(int offset = 0; offset < BOX_SIZE; offset++) {
+			int boxX = boxXTopCorner + (offset / 3);
+			int boxY = boxYTopCorner + (offset % 3);
+			if(boxX == i && boxY == j) {
+				objFunc[getIndex(boxX + 1, boxY + 1, value)] = -negativeBound;
+			} else {
+				objFunc[getIndex(boxX + 1, boxY + 1, value)] = negativeBound;
 			}
 		}
 	}
