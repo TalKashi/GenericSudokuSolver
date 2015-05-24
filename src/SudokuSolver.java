@@ -53,14 +53,14 @@ public class SudokuSolver {
 					  } else {
 						  printOutput();
 					  }				  
-					  //lp.writeLp("modelSpecific"+x+".lp");
+					  lp.writeLp("modelGeneric.lp");
 					  lp.deleteLp();
 					  break;
 				  case ALL:
 					  setFilePath("C:\\temp\\5.txt");
 					  final long start = System.nanoTime();
 					  int lineNumber = 0;
-					  while ((line = getNextLine()) != null && lineNumber < 100) {
+					  while ((line = getNextLine()) != null && lineNumber < 10000) {
 						  initLp();
 						  loadMatrixFromString(line);
 						  lp.setObjFn(objFunc);
@@ -70,7 +70,6 @@ public class SudokuSolver {
 						  }
 						  lineNumber++;
 						  System.out.println("Finished line " + lineNumber);
-						  //lp.writeLp("modelSpecific"+x+".lp");
 						  lp.deleteLp();
 					  }
 					  final long end = System.nanoTime();
@@ -88,9 +87,7 @@ public class SudokuSolver {
 	catch (IOException e) {
 		  e.printStackTrace();
 	}
-
-	System.out.println("Thanks for using our Specific Sudoku solver model!");
-		
+	System.out.println("Thanks for using our Specific Sudoku solver model!");	
   }
   
   private static int validateInput(String line) {
@@ -123,7 +120,6 @@ public class SudokuSolver {
 			  return INVALID;
 		  }
 	  }
-		
 	  return SINGLE_PROBLEM;
   }
   
@@ -154,46 +150,13 @@ public class SudokuSolver {
 		
 		for(int i = 0; i < ROW_SIZE; i++) {
 			for(int j = 0; j < COLUMN_SIZE; j++) {
-				//for (int value = 0; value < MAX_VALUE; value++) {
 					if(charArr[ROW_SIZE * i + j] - '0' == 0) {
-						//addZeros(i, j);
 					} else {
-						//System.out.println(createString(i + 1, j + 1, charArr[ROW_SIZE * i + j] - '0'));
 						addCoef(i, j, charArr[ROW_SIZE * i + j] - '0');
 					}
-				//}
 			}
 		}
-		//colno[0] = getIndex()
-//		for(int i = 0; i < colno.length; i++) {
-//			for(int j = 0; j < colno.length; j++) {
-//				for (int k = 0; k < 9; k++) {
-//					colno[0] = getIndex(i + 1, j + 1, k + 1);
-//					if ((charArr[9 * i + j] - '0' != (k + 1)) && (charArr[9 * i + j] - '0' != 0)) {
-//						lp.addConstraintex(1, sparseRow, colno, LpSolve.LE, 0);
-//					} else if ((charArr[9 * i + j] - '0' == (k + 1))) {
-//						lp.addConstraintex(1, sparseRow, colno, LpSolve.EQ, 1);
-//					} else {
-//						lp.addConstraintex(1, sparseRow, colno, LpSolve.LE, 1);
-//					}
-//				}
-				
-				//colno[0] = getIndex(i + 1, j + 1, (charArr[9 * i + j] - '0'));
-				// ij1 + 2ij2 + 3ij3 + ..... + 9ij9 >= charArr[9 * i + j] - '0'
-//				for (int k = 0; k < colno.length; k++) {
-//					//colno[k] = counter++;
-//				}
-				//lp.addConstraintex(1, sparseRow, colno, LpSolve.EQ, 1);
-				
-				
-				
-//				if(charArr[9 * i + j] - '0' != 0 ) {
-//					addConstraint(i, j, charArr[9 * i + j] - '0');
-//				}
-//			}
-//		}
-//		colno[0] = getIndex(1, 5, 7);
-//		lp.addConstraintex(1, sparseRow, colno, LpSolve.EQ, 1);
+
 		lp.setAddRowmode(false);
 	}
 	
@@ -202,9 +165,6 @@ public class SudokuSolver {
 		for (int row = 0; row < ROW_SIZE; row++) {
 			
 			if (row == i) {
-				//bound = 1000000;
-				//System.out.println(createString(i + 1, j + 1, value));
-				//System.out.println(getIndex(row + 1, j + 1, value));
 				objFunc[getIndex(row + 1, j + 1, value)] = -negativeBound;
 			} else {
 				objFunc[getIndex(row + 1, j + 1, value)] = negativeBound;
@@ -212,10 +172,7 @@ public class SudokuSolver {
 		}
 		
 		for (int column = 0; column < COLUMN_SIZE; column++) {
-			//System.out.println(createString(i + 1, j + 1, value));
-			//int bound = -1000000;
 			if (column == j) {
-				//bound = 1000000;
 				objFunc[getIndex(i + 1, column + 1, value)] = -negativeBound;
 			} else {
 				objFunc[getIndex(i + 1, column + 1, value)] = negativeBound;
@@ -234,54 +191,21 @@ public class SudokuSolver {
 				objFunc[getIndex(boxX + 1, boxY + 1, value)] = negativeBound;
 			}
 		}
-		
 		for(int k = 1; k <= ROW_SIZE; k++) {
 			if(k == value) {
 				objFunc[getIndex(i + 1, j + 1, k)] = -negativeBound;
 			} else {
 				objFunc[getIndex(i + 1, j + 1, k)] = negativeBound;
 			}
-			
 		}
 	}
 	
-//	private static void addZeros(int i, int j) {
-//		for (int row = 0; row < ROW_SIZE; row++) {
-//			for (int column = 0; column < COLUMN_SIZE; column++) {
-//				//objFunc[getIndex(i + 1, j + 1, value + 1)] = 1;
-//			}
-//		}
-//		
-//	}
-
-//	static int getFirstIndex() {
-//		
-//	}
-
-//	private static void addConstraint(int i, int j, int value) throws LpSolveException {
-//		int j1;
-//		int v;
-//		for(int k2 = 1; k2 <= 9; k2++) {
-//			j1 = 0;
-//			v = 0;
-//			if(k2 == value) {
-//				v = 1;
-//			}
-//			colno[j1] = getIndex(i + 1, j + 1, k2);
-//			//row[j1++] = 1;
-//			lp.addConstraintex(1, sparseRow, colno, LpSolve.EQ, v);
-//		}
-//	}
-	
-
-
 	private static void closeFile() {
 		try {
 			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	private static String getNextLine() {
@@ -293,7 +217,6 @@ public class SudokuSolver {
 	}
 	
 	private static void setFilePath(String path) {
-
 		try {
 			br = new BufferedReader(new FileReader(path));
 		} catch (IOException e) {
@@ -321,9 +244,6 @@ public class SudokuSolver {
 	    remainder = totalSecondsNoFraction % 3600;
 	    minutes = remainder / 60;
 	    seconds = remainder % 60;
-	    //if(arr[1].contains("E")) seconds = Double.parseDouble(arr[1]);
-	    //else seconds += Double.parseDouble(arr[1]);
-
 
 	    // Formatting the string that conatins hours, minutes and seconds
 	    StringBuilder result = new StringBuilder();
@@ -417,16 +337,6 @@ public class SudokuSolver {
 					}
 				}
 			}
-			
-			// Only VALUE_SIZE cells can be assign to each value
-//			for (int value = 0; value < MAX_VALUE; value++) {
-//				for (int row = 0; row < ROW_SIZE; row++) {
-//					for (int column = 0; column < COLUMN_SIZE; column++) {
-//						colno[9 * row + column] = getIndex(row + 1, column + 1, value + 1);
-//					}
-//				}
-//				lp.addConstraintex(CELLS_NUM, sparseRow, colno, LpSolve.EQ, MAX_VALUE);
-//			}
 
 			for (int i = 0; i < VAR_NUMBER; i++) {
 				lp.setBinary(i + 1, true);
@@ -435,6 +345,5 @@ public class SudokuSolver {
 		} catch (LpSolveException e) {
 			e.printStackTrace();
 		}
-	}
-		
+	}	
 }
